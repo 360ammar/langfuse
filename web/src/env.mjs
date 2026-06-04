@@ -442,6 +442,12 @@ export const env = createEnv({
       .enum(["true", "false"])
       .default("false"),
 
+    // Kill-switch for the observations v2 subquery-IN rewrite.
+    // Default off; flip per-env after soak. Worker omitted: v2 query path is web-only.
+    LANGFUSE_OBSERVATIONS_V2_SUBQUERY_REWRITE: z
+      .enum(["true", "false"])
+      .default("false"),
+
     // Blocked users for chat completion API (userId:reason format)
     LANGFUSE_BLOCKED_USERIDS_CHATCOMPLETION: z
       .string()
@@ -855,6 +861,8 @@ export const env = createEnv({
       process.env.LANGFUSE_ENABLE_EVENTS_TABLE_FLAGS,
     LANGFUSE_ENABLE_EVENTS_TABLE_V2_APIS:
       process.env.LANGFUSE_ENABLE_EVENTS_TABLE_V2_APIS,
+    LANGFUSE_OBSERVATIONS_V2_SUBQUERY_REWRITE:
+      process.env.LANGFUSE_OBSERVATIONS_V2_SUBQUERY_REWRITE,
     LANGFUSE_BLOCKED_USERIDS_CHATCOMPLETION:
       process.env.LANGFUSE_BLOCKED_USERIDS_CHATCOMPLETION,
   },
