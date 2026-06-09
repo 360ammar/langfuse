@@ -59,6 +59,39 @@ describe("Microsoft Agent Framework Adapter", () => {
       expect(microsoftAgentAdapter.detect({ data: input })).toBe(true);
     });
 
+    it("should not detect pydantic-ai tool response messages", () => {
+      const input = [
+        {
+          role: "user",
+          parts: [{ type: "text", content: "Find this user" }],
+        },
+        {
+          role: "assistant",
+          parts: [
+            {
+              type: "tool_call",
+              id: "tooluse_123",
+              name: "user_service__find_user",
+              arguments: '{"email":"test@example.com"}',
+            },
+          ],
+        },
+        {
+          role: "user",
+          parts: [
+            {
+              type: "tool_call_response",
+              id: "tooluse_123",
+              name: "user_service__find_user",
+              result: { success: false, detail: "NOT_FOUND" },
+            },
+          ],
+        },
+      ];
+
+      expect(microsoftAgentAdapter.detect({ data: input })).toBe(false);
+    });
+
     it("should not detect OpenAI format without parts", () => {
       expect(
         microsoftAgentAdapter.detect({

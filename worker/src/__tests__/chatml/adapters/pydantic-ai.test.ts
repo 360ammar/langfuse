@@ -152,6 +152,67 @@ describe("Pydantic AI Adapter", () => {
       expect(result.data?.[3].tools).toHaveLength(2); // Available tools attached
     });
 
+    it("should select pydantic-ai for tool response messages without metadata", () => {
+      const input = [
+        {
+          role: "user",
+          parts: [
+            {
+              type: "text",
+              content: "Can you give me info about <EMAIL_ADDRESS> please?",
+            },
+          ],
+        },
+        {
+          role: "assistant",
+          parts: [
+            {
+              type: "tool_call",
+              id: "tooluse_WZ1cQWovwUuKcN8m14wHTp",
+              name: "insurance_platform_lookup_vehicle",
+              arguments: '{"vrn":"XX00XXX"}',
+            },
+          ],
+        },
+        {
+          role: "user",
+          parts: [
+            {
+              type: "tool_call_response",
+              id: "tooluse_WZ1cQWovwUuKcN8m14wHTp",
+              name: "insurance_platform_lookup_vehicle",
+              result: {
+                success: false,
+                detail: "NOT_FOUND",
+              },
+            },
+          ],
+        },
+      ];
+
+      const adapter = selectAdapter({ data: input });
+      expect(adapter.id).toBe("pydantic-ai");
+
+      const result = normalizeInput(input);
+
+      expect(result.success).toBe(true);
+      expect(result.data?.[0]).toMatchObject({
+        role: "user",
+        content: "Can you give me info about <EMAIL_ADDRESS> please?",
+      });
+      expect(result.data?.[1].tool_calls?.[0]).toMatchObject({
+        id: "tooluse_WZ1cQWovwUuKcN8m14wHTp",
+        name: "insurance_platform_lookup_vehicle",
+        arguments: '{"vrn":"XX00XXX"}',
+        type: "function",
+      });
+      expect(result.data?.[2]).toMatchObject({
+        role: "tool",
+        tool_call_id: "tooluse_WZ1cQWovwUuKcN8m14wHTp",
+        content: '{"success":false,"detail":"NOT_FOUND"}',
+      });
+    });
+
     it("should extract thinking parts", () => {
       const output = [
         {
